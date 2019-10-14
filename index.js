@@ -5,6 +5,10 @@
 // To see documentation go to expressjs.com 
 const express = require('express');
 const app = express();
+
+// middleware 
+app.use(express.json());
+
 // The port is dinamically assigned by the hosting environment. 
 // On mac you can set an environment variable by executing 'export command'
 // On windows you should use export port=5000
@@ -36,11 +40,25 @@ app.get('/api/courses', (req, res) => {
     res.send(courses);
 })
 
-// renponse in browser for /api/courses/1... {"id":1,"name":"course1"}
+// response in browser for /api/courses/1... {"id":1,"name":"course1"}
 // response in browser for /api/courses/5... The course with the given id was not found.
 app.get('/api/courses/:id', (req,res) => {
     const course = courses.find(c => c.id === parseInt(req.params.id));
     if (!course) res.status(404).send('The course with the given id was not found.'); // 404 Not Found
+    res.send(course);
+});
+
+// Use PostMan to test this... 
+// response in PostMan for http:localhost:3000/api/courses... body... raw... json... {"name": "new course"}
+// {"id": 4, "name": "new course"}
+app.post('/api/courses', (req, res) => {
+    const course = {
+        // when working with a database, the id will be automatically asigned.
+        id: courses.lenght + 1,
+        // we have to read this from the body of the request.
+        name: req.body.name 
+    };
+    courses.push(course);
     res.send(course);
 });
 
