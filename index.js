@@ -2,20 +2,11 @@
 
 // For input validation. Best Practice: Capital J beacuse what is returned from this module is a class (pascal naming convention).
 const Joi = require('joi');
-
-// Express is a web application framework for NodeJS. 
-// To install go to npmjs.com
-// To see documentation go to expressjs.com 
+// Express is a web application framework for NodeJS... To install go to npmjs.com... To see documentation go to expressjs.com 
 const express = require('express');
 const app = express();
-
 // middleware 
 app.use(express.json());
-
-// The port is dinamically assigned by the hosting environment. 
-// On mac you can set an environment variable by executing 'export command'
-// On windows you should use export port=5000
-const port = process.env.port || 3000;
 
 const courses = [
     { id:1, name: 'course1' },
@@ -47,7 +38,7 @@ app.get('/api/courses', (req, res) => {
 // response in browser for /api/courses/5... The course with the given id was not found.
 app.get('/api/courses/:id', (req,res) => {
     const course = courses.find(c => c.id === parseInt(req.params.id));
-    if (!course) res.status(404).send('The course with the given id was not found.'); // 404 Not Found
+    if (!course) return res.status(404).send('The course with the given id was not found.'); // 404 Not Found
     res.send(course);
 });
 
@@ -59,19 +50,12 @@ app.post('/api/courses', (req, res) => {
     const schema = {
         name: Joi.string().min(3).required()
     };
-
     const result = Joi.validate(req.body, schema);
 
-    if (result.error) {
-        res.status(400).send(result.error.details[0].message);
-        return;
-    };
+    if (result.error) return res.status(400).send(result.error.details[0].message);
 
     // Validation without Joi...
-    // if (!req.body.name || req.body.name.length < 3) {
-    //     res.status(400).send('Name is required and should have a minimum of 3 characters'); // 400 Bad request
-    //     return;
-    // }
+    // if (!req.body.name || req.body.name.length < 3) return res.status(400).send('Name is required and should have a minimum of 3 characters'); // 400 Bad request
     
     const course = {
         // when working with a database, the id will be automatically asigned.
@@ -87,21 +71,22 @@ app.put('/api/courses/:id', (req, res) => {
     // Look up the course
     const course = courses.find(c => c.id === parseInt(req.params.id));
     // If it does not exist, return 404 - Not Found
-    if (!course) res.status(404).send('The course with the given id was not found.'); // 404 Not Found
+    if (!course) return res.status(404).send('The course with the given id was not found.'); // 404 Not Found
 
 
-    // //Validate
+    //Validate
+
     // const schema = {
     //     name: Joi.string().min(3).required()
     // };
     // const result = Joi.validate(req.body, schema);
+
     // -OR- since this is used in post and put you can make a function so you can reuse it in both like this...
     const result = calidateCourse(req.body);  // result can be replaced with { error } which is the same as result.error
     
     //If not valid, return 400 - Bad Request
     if (result.error) {                       // if { error } is used above, you can replace result.error with just error
-        res.status(400).send(result.error.details[0].message);
-        return;
+        return res.status(400).send(result.error.details[0].message);
     };
 
     // Update course
@@ -119,6 +104,25 @@ function validateCourse(course) {
     return Joi.validate(course, schema);
 }
 
+app.delete('/api/courses/:id', (req, res) => {
+    // Look up the course
+    const course = courses.find(c => c.id === parseInt(req.params.id));
+    // If it does not exist, return 404 - Not Found
+    if (!course) return res.status(404).send('The course with the given id was not found.'); // 404 Not Found
+    
+    // Delete
+    const index = courses.indexOf(course);
+    course.splice(index, 1);
 
+    // Return the same course
+    res.send(course);
+})
+
+
+
+// The port is dinamically assigned by the hosting environment. 
+// On mac you can set an environment variable by executing 'export command'
+// On windows you should use export port=5000
+const port = process.env.port || 3000;
 
 app.listen(port, () => console.log(`Listening on port ${port}...`))
